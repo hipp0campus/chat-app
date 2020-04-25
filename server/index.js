@@ -1,33 +1,53 @@
 const express = require('express');
 const app = express();
-
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
+const formatMessage = require('./utils/formatMessage');
+const { 
+  userJoin,
+  getCurrentUser, 
+  userLeave, 
+  getRoomUsers
+} = require('./utils/users');
+
 app.use(express.static('../app/public'));
 
-let users = [{ users: 'Emil' }];
-
-app.get('/users', (req, res) => {
-  res.send({ users });
-});
-
 io.on('connection', (socket) => {
-  // socket --> endast clienten
-  // io --> alla clienter
-  // broadcast --> alla clienter förutom sändaren
+  socket.on('join_room', ({ username, room }) => {
+    const user = userJoin(socket.id, username, room);
 
-  socket.broadcast.emit('users', 'A user has joined the chat.');
+    socket.join(user.room);
 
-  socket.on('disconnect', () => {
-    io.emit('users', 'A user has left the chat.')
-  });
+    socket.broadcast
+      .to(user.room)
+      .emit('users', `${user.username} has joined the chat.`);
+    
+    io.to(user.room).emit('room_users', {
+      room: user.room,
+      users: getRoomUsers(user.room)
+    });
+  })
 
   socket.on('new_message', (msg) => {
-    socket.broadcast.emit('new_message', msg);
+    const user = getCurrentUser(socket.id);
+
+    socket.broadcast.emit('new_message', formatMessage(user.username, msg));
   });
 
+  socket.on('disconnect', () => {
+    const user = userLeave(socket.id);
 
+    if (user) {
+      io.to(user.room).emit('users', `${user.username} has left the chat.`)
+
+      io.to(user.room).emit('room_users', {
+        room: user.room,
+        users: getRoomUsers(user.room)
+      });
+    }
+
+  });
 });
 
 const PORT = process.env.PORT || 8080;
