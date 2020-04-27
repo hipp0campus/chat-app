@@ -1,8 +1,10 @@
+const { uuid } = require('uuidv4');
+
 function formatMessage(username, msg) {
   return {
-    id: Math.random(),
-    username,
-    msg,
+    message: msg,
+    user: username,
+    _id: uuid(),
   }
 }
 

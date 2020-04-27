@@ -3,6 +3,8 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
+const { getClient, getDB, createObjectId } = require('./db');
+
 const formatMessage = require('./utils/formatMessage');
 const { 
   userJoin,
@@ -12,6 +14,44 @@ const {
 } = require('./utils/users');
 
 app.use(express.static('../app/public'));
+app.use(express.json());
+
+app.get('/chatroom/:room/', (req, res) => {
+  const room = req.params.room;
+
+  const db = getDB();
+
+  db.collection('rooms')
+    .find({})
+    .toArray()
+    .then((data) => {
+      res.send(data);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).end();
+    })
+});
+
+app.post('/message', (req, res) => {
+  const db = getDB();
+  const data = req.body;
+
+
+
+  // if (validate(data) === false) return res.status(400).end();
+
+  db.collection('rooms')
+    .insertOne(data)
+    .then(result => {
+      data._id = result.insertedId;
+      res.status(201).send(data);
+    })
+    .catch(err => {
+      console.log(err);
+      res.send(500).end();
+    })
+});
 
 io.on('connection', (socket) => {
   socket.on('join_room', ({ username, room }) => {
