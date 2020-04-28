@@ -7,10 +7,10 @@ import GlobalStyle from './GlobalStyle';
 
 function App() {
   return (
-    <Router>
-      <GlobalStyle />
+    <Router> 
       <Route path="/login" component={Login} />
       <Route path="/chatroom" component={Main} />
+      <GlobalStyle />
     </Router>
   );
 }

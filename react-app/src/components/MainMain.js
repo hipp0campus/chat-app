@@ -32,17 +32,15 @@ const Container = styled.main`
   }
 `;
 
-export default function MainMain({ socket, room }) {
+export default function MainMain({ socket, room, clientMessage }) {
   const [mess, setMess] = useState([]);
 
   useEffect(() => {
     if (socket && room) {
       socket.on('new_message', msg => {
-        console.log(mess)
         let message = [...mess];
         message.push(msg);
         
-        console.log(message)
         setMess(message);
       });
     }
@@ -55,12 +53,20 @@ export default function MainMain({ socket, room }) {
   }, [socket, mess, room]);
 
   useEffect(() => {
+    if (clientMessage.message) {
+      const messages = [...mess];
+      messages.push(clientMessage);
+      setMess(messages);
+    }
+  }, [clientMessage]);
+
+  useEffect(() => {
     if (room) {
       axios.get('/chatroom/' + room)
         .then(data => data.data)
         .then(mess => setMess(mess));
     }
-  }, [room])
+  }, [room]);
 
   return (
     <Container>

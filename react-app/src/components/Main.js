@@ -32,7 +32,7 @@ export default function Main() {
   const [users, setUsers] = useState([]);
   const [room, setRoom] = useState('');
   const [currentUser, setCurrentUser] = useState([]);
-  const [messages, setMessages] = useState([]);
+  const [clientMessage, setClientMessage] = useState({});
   const { search } = useLocation();
 
   useEffect(() => {
@@ -56,10 +56,7 @@ export default function Main() {
   },[search]);
 
   function handleClientMessages(clientMsg) {
-    const newMessages = [...messages];
-
-    newMessages.push(clientMsg);
-    setMessages(newMessages);
+    setClientMessage(clientMsg);
   }
 
   return (
@@ -69,7 +66,7 @@ export default function Main() {
         <MainHeader />
         <div className="flex-container">
           <MainAside users={users} room={room} />
-          <MainMain socket={socket} messages={messages} room={room} />
+          <MainMain socket={socket} room={room} clientMessage={clientMessage} />
         </div>
         <MainFooter socket={socket} currentUser={currentUser} room={room} handleClientMessages={handleClientMessages}/>
       </div>

@@ -3,7 +3,7 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
-const { getClient, getDB, createObjectId } = require('./db');
+const { getDB, createObjectId } = require('./db');
 
 const formatMessage = require('./utils/formatMessage');
 const { 
@@ -69,6 +69,23 @@ app.post('/login/new_room', (req, res) => {
     })
 })
 
+app.delete('/login/delete_room', (req, res) => {
+  const db = getDB();
+  const data = req.body.room;
+
+  // if (validate(data) === false) return res.status(400).end();
+
+  db.collection('rooms')
+    .deleteMany({ room: data })
+    .then(() => {
+      res.status(204).send(data);
+    })
+    .catch(err => {
+      console.log('Error', err);
+      res.send(500).end();
+    })
+});
+
 app.post('/message', (req, res) => {
   const db = getDB();
   const data = req.body;
@@ -87,24 +104,25 @@ app.post('/message', (req, res) => {
     })
 });
 
+
 io.on('connection', (socket) => {
   socket.on('join_room', ({ username, room }) => {
     const user = userJoin(socket.id, username, room);
 
     socket.join(user.room);
     
+    socket.on('new_message', (msg) => {
+      const user = getCurrentUser(socket.id);
+      
+      socket.broadcast.to(user.room).emit('new_message', formatMessage(user.username, msg));
+    });
+    
     io.to(user.room).emit('room_users', {
       room: user.room,
       users: getRoomUsers(user.room)
     });
   })
-
-  socket.on('new_message', (msg) => {
-    const user = getCurrentUser(socket.id);
-
-    socket.broadcast.emit('new_message', formatMessage(user.username, msg));
-  });
-
+  
   socket.on('disconnect', () => {
     const user = userLeave(socket.id);
 
@@ -114,7 +132,6 @@ io.on('connection', (socket) => {
         users: getRoomUsers(user.room)
       });
     }
-
   });
 });
 

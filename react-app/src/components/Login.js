@@ -75,6 +75,7 @@ const Container = styled.div`
 export default function Login() {
   const [rooms, setRooms] = useState([]);
   const [roomName, setRoomName] = useState([]);
+  const [selectVal, setSelectVal] = useState('');
 
   useEffect(() => {
     if (!rooms.length) {
@@ -91,11 +92,25 @@ export default function Login() {
       user: 'Chat-Bot'
     });
 
+    const copyRooms = [...rooms];
+    copyRooms.push(roomName);
+    setRooms(copyRooms);
+
     setRoomName('');
+  }
+
+  function handleDeleteRoom() {
+    axios.delete('/login/delete_room', {
+      data: { room: selectVal }
+    });
   }
 
   function onChange(e) {
     setRoomName(e.target.value);
+  }
+
+  function handleSelect(e) {
+    setSelectVal(e.target.value);
   }
 
   return (
@@ -133,10 +148,10 @@ export default function Login() {
             <div className="form-control">
               <label htmlFor="room">Room</label>
               <div className="room-control">
-                <select name="room" id="room">
+                <select name="room" id="room" value={selectVal} onChange={handleSelect}>
                   {rooms.map((room, i) => <option key={i} value={room}>{room}</option>)}
                 </select>
-                <button>Delete room</button>
+                <button onClick={handleDeleteRoom}>Delete room</button>
               </div>
             </div>
             <div className="form-control">
