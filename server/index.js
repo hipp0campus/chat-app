@@ -22,7 +22,7 @@ app.get('/chatroom/:room/', (req, res) => {
   const db = getDB();
 
   db.collection('rooms')
-    .find({})
+    .find({ room: room })
     .toArray()
     .then((data) => {
       res.send(data);
@@ -33,11 +33,45 @@ app.get('/chatroom/:room/', (req, res) => {
     })
 });
 
-app.post('/message', (req, res) => {
+app.get('/login', (req, res) => {
+  const db = getDB();
+
+  db.collection('rooms')
+    .find({})
+    .toArray()
+    .then((data) => {
+      let result = data.map(room => room.room);
+      let unique = [...new Set(result)];
+      res.send(unique);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).end();
+    })
+});
+
+app.post('/login/new_room', (req, res) => {
   const db = getDB();
   const data = req.body;
 
+  // if (validate(data) === false) return res.status(400).end();
 
+  db.collection('rooms')
+    .insertOne(data)
+    .then(result => {
+      data._id = result.insertedId;
+      console.log(data)
+      res.status(201).send(data);
+    })
+    .catch(err => {
+      console.log(err);
+      res.send(500).end();
+    })
+})
+
+app.post('/message', (req, res) => {
+  const db = getDB();
+  const data = req.body;
 
   // if (validate(data) === false) return res.status(400).end();
 
