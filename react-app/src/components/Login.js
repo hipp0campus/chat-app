@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import io from 'socket.io-client';
 
 const Container = styled.div`
   display: flex;
@@ -45,12 +46,12 @@ const Container = styled.div`
     display: flex;
     
     select,
-    input {
+    input[type="text"] {
       flex: 6;
     }
 
-    button {
-      flex: 1;
+    input[type="submit"] {
+      flex: 2;
       cursor: pointer;
     }
   }
@@ -74,8 +75,23 @@ const Container = styled.div`
 
 export default function Login() {
   const [rooms, setRooms] = useState([]);
-  const [roomName, setRoomName] = useState([]);
+  const [roomName, setRoomName] = useState('');
   const [selectVal, setSelectVal] = useState('');
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const socket = io('localhost:8080');
+    setSocket(socket);
+
+    socket.on('new_room', newRooms => {
+      console.log(newRooms);
+      setRooms(newRooms);
+    });
+
+    return () => {
+      socket.off('new_room');
+    }
+  }, [rooms]);
 
   useEffect(() => {
     if (!rooms.length) {
@@ -86,23 +102,40 @@ export default function Login() {
   }, [rooms]);
 
   function handleNewRoom() {
-    axios.post('/login/new_room', {
-      room: roomName,
-      message: 'Welcome to your new chatroom!',
-      user: 'Chat-Bot'
-    });
+    const isDuplicate = validateInput(roomName);
 
-    const copyRooms = [...rooms];
-    copyRooms.push(roomName);
-    setRooms(copyRooms);
+    if (!isDuplicate) {
+      axios.post('/login/new_room', {
+        room: roomName,
+        message: 'Welcome to your new chatroom!',
+        user: 'Chat-Bot'
+      });
+
+      
+      const copyRooms = [...rooms];
+      copyRooms.push(roomName);
+      setRooms(copyRooms);
+
+      socket.emit('add_room', (copyRooms));
+    };
 
     setRoomName('');
+  }
+
+  function validateInput(input) {
+    if (input) return rooms.find(room => input === room);
   }
 
   function handleDeleteRoom() {
     axios.delete('/login/delete_room', {
       data: { room: selectVal }
     });
+    
+    const copyRooms = [...rooms];
+    
+    const roomIndex = copyRooms.findIndex(room => room === selectVal);
+    copyRooms.splice(roomIndex, 1);
+    setRooms(copyRooms);
   }
 
   function onChange(e) {
@@ -128,6 +161,8 @@ export default function Login() {
                 name="username"
                 id="username"
                 placeholder="Enter username..."
+                minLength="3"
+                maxLength="20"
                 required
               />
             </div>
@@ -142,7 +177,7 @@ export default function Login() {
                   id="add-room"
                   placeholder="Add new room..."
                 />
-                <button onClick={handleNewRoom}>Add room</button>
+                <input type="submit" onClick={handleNewRoom} value="Add room" />
               </div>
             </div>
             <div className="form-control">
@@ -151,7 +186,7 @@ export default function Login() {
                 <select name="room" id="room" value={selectVal} onChange={handleSelect}>
                   {rooms.map((room, i) => <option key={i} value={room}>{room}</option>)}
                 </select>
-                <button onClick={handleDeleteRoom}>Delete room</button>
+                <input type="submit" onClick={handleDeleteRoom} value="Delete room" />
               </div>
             </div>
             <div className="form-control">

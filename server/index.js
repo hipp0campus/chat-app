@@ -60,7 +60,6 @@ app.post('/login/new_room', (req, res) => {
     .insertOne(data)
     .then(result => {
       data._id = result.insertedId;
-      console.log(data)
       res.status(201).send(data);
     })
     .catch(err => {
@@ -122,6 +121,23 @@ io.on('connection', (socket) => {
       users: getRoomUsers(user.room)
     });
   })
+
+  socket.on('leave_room', () => {
+    const user = userLeave(socket.id);
+
+    if (user) {
+      io.to(user.room).emit('room_users', {
+        room: user.room,
+        users: getRoomUsers(user.room)
+      });
+    };
+  });
+
+  socket.on('add_room', (rooms) => {
+    let uniqueRooms = [...new Set(rooms)];
+    console.log(uniqueRooms);
+    socket.broadcast.emit('new_room', uniqueRooms);
+  })
   
   socket.on('disconnect', () => {
     const user = userLeave(socket.id);
@@ -131,7 +147,7 @@ io.on('connection', (socket) => {
         room: user.room,
         users: getRoomUsers(user.room)
       });
-    }
+    };
   });
 });
 

@@ -20,12 +20,16 @@ const Container = styled.header`
   }
 `;
 
-export default function MainHeader() {
+export default function MainHeader({ socket }) {
+  function onClick() {
+    socket.emit('leave_room');
+  }
+
   return (
     <Container>
       <h1>Chat-App</h1>
       <Link to="/login">
-        <button>Leave Room</button>
+        <button onClick={onClick}>Leave Room</button>
       </Link>
     </Container>
   )

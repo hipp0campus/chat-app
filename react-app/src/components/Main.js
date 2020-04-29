@@ -3,7 +3,6 @@ import { useLocation, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import io from 'socket.io-client';
 import qs from 'qs';
-import axios from 'axios';
 
 import MainHeader from './MainHeader';
 import MainMain from './MainMain';
@@ -63,7 +62,7 @@ export default function Main() {
     <Container>
       {search ? null : <Redirect to="/login" />}
       <div className="wrapper">
-        <MainHeader />
+        <MainHeader socket={socket} />
         <div className="flex-container">
           <MainAside users={users} room={room} />
           <MainMain socket={socket} room={room} clientMessage={clientMessage} />
