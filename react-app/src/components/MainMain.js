@@ -10,6 +10,7 @@ const Container = styled.main`
   border-bottom: 2px solid black;
 
   overflow-y: auto;
+  overflow-x: hidden;
 
   .msg-container {
     display: flex;

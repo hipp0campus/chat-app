@@ -54,7 +54,16 @@ app.post('/login/new_room', (req, res) => {
   const db = getDB();
   const data = req.body;
 
-  // if (validate(data) === false) return res.status(400).end();
+  // Validate duplicate rooms.
+  db.collection('rooms')
+    .find({room: data.room})
+    .toArray()
+    .then(data => {
+      if (data.length) return res.status(400).send(`Will not handle duplicate room names.`);
+    })
+    .catch(err => {
+      console.log(err)
+    });
 
   db.collection('rooms')
     .insertOne(data)
@@ -85,11 +94,17 @@ app.delete('/login/delete_room', (req, res) => {
     })
 });
 
+function validate(msg) {
+  if (!!msg.room && !!msg.user && !!msg.message) return true;
+
+  return false;
+}
+
 app.post('/message', (req, res) => {
   const db = getDB();
   const data = req.body;
 
-  // if (validate(data) === false) return res.status(400).end();
+  if (validate(data) === false) return res.status(400).end();
 
   db.collection('rooms')
     .insertOne(data)
@@ -135,7 +150,6 @@ io.on('connection', (socket) => {
 
   socket.on('add_room', (rooms) => {
     let uniqueRooms = [...new Set(rooms)];
-    console.log(uniqueRooms);
     socket.broadcast.emit('new_room', uniqueRooms);
   })
   

@@ -71,6 +71,11 @@ const Container = styled.div`
     font-family: 'Baloo Paaji 2', cursive;
     font-size: 16px;
   }
+
+  #validation {
+    font-size: 12px;
+    margin-top: 6px;
+  }
 `;
 
 export default function Login() {
@@ -102,9 +107,9 @@ export default function Login() {
   }, [rooms]);
 
   function handleNewRoom() {
-    const isDuplicate = validateInput(roomName);
+    const isValid = validateInput(roomName);
 
-    if (!isDuplicate) {
+    if (isValid) {
       axios.post('/login/new_room', {
         room: roomName,
         message: 'Welcome to your new chatroom!',
@@ -123,7 +128,18 @@ export default function Login() {
   }
 
   function validateInput(input) {
-    if (input) return rooms.find(room => input === room);
+    let onlyLetters = /^[A-Z]{1,12}$/i;
+
+    if (onlyLetters.test(input)) {
+      let isDuplicate = rooms.find(room => input === room);
+      if (!isDuplicate) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
   }
 
   function handleDeleteRoom() {
@@ -167,20 +183,6 @@ export default function Login() {
               />
             </div>
             <div className="form-control">
-              <label htmlFor="add-room">Room name</label>
-              <div className="room-control">
-                <input 
-                  onChange={onChange}
-                  value={roomName}
-                  type="text"
-                  name="Room name"
-                  id="add-room"
-                  placeholder="Add new room..."
-                />
-                <input type="submit" onClick={handleNewRoom} value="Add room" />
-              </div>
-            </div>
-            <div className="form-control">
               <label htmlFor="room">Room</label>
               <div className="room-control">
                 <select name="room" id="room" value={selectVal} onChange={handleSelect}>
@@ -193,6 +195,24 @@ export default function Login() {
               <input type="submit" className="btn" value="Join Chat" />
             </div>
           </form>
+          <div className="form-control">
+              <label htmlFor="add-room">Room name</label>
+              <div className="room-control">
+                <input 
+                  onChange={onChange}
+                  value={roomName}
+                  type="text"
+                  name="Room name"
+                  id="add-room"
+                  placeholder="Add new room..."
+                />
+                <input type="submit" onClick={handleNewRoom} value="Add room" />
+              </div>
+              <p id="validation">
+                Can only contain letters and must be between 1-12 characters.<br/>
+                Cannot make a duplicate room.
+                </p>
+            </div>
         </main>
       </div>
     </Container>

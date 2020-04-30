@@ -52,6 +52,9 @@ export default function MainFooter({ socket, currentUser, room, handleClientMess
            onChange={onChange} 
            name="message"
            value={message}
+           required
+           minLength="1"
+           maxLength="200"
           />
           <input type="submit" value="Send"/>
         </div>
