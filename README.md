@@ -1,3 +1,6 @@
+## Running
+The applications database runs locally with mongodb on port: 27017...
+
 ## Instruktioner
 
 Du ska bygga en chatt applikation. Det ska finnas både en frontend samt en backend för applikationen. Det finns inga krav på hur frontenden ska se ut eller fungera.   
