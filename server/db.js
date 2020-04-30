@@ -20,8 +20,5 @@ module.exports = {
     let client = module.exports.getClient();
     let db = client.db(dbName);
     return db;
-  },
-  createObjectId(id) {
-    return new ObjectId(id);
   }
 }

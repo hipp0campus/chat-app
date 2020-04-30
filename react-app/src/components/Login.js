@@ -12,6 +12,12 @@ const Container = styled.div`
 
   text-align: center;
 
+  form {
+    border-bottom: 2px solid black;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
   .wrapper {
     min-height: 300px;
     min-width: 400px;
@@ -36,7 +42,7 @@ const Container = styled.div`
     flex-direction: column;
     padding: 14px;
     font-size: 16px;
-
+    
     label {
       align-self: flex-start;
     }
@@ -76,6 +82,12 @@ const Container = styled.div`
     font-size: 12px;
     margin-top: 6px;
   }
+
+  #delete-room {
+    margin-top: 6px;
+    flex: 1;
+    padding: 12px;
+  }
 `;
 
 export default function Login() {
@@ -88,13 +100,12 @@ export default function Login() {
     const socket = io('localhost:8080');
     setSocket(socket);
 
-    socket.on('new_room', newRooms => {
-      console.log(newRooms);
+    socket.on('update_room', newRooms => {
       setRooms(newRooms);
     });
 
     return () => {
-      socket.off('new_room');
+      socket.off('update_room');
     }
   }, [rooms]);
 
@@ -121,7 +132,7 @@ export default function Login() {
       copyRooms.push(roomName);
       setRooms(copyRooms);
 
-      socket.emit('add_room', (copyRooms));
+      socket.emit('update_room', (copyRooms));
     };
 
     setRoomName('');
@@ -145,13 +156,19 @@ export default function Login() {
   function handleDeleteRoom() {
     axios.delete('/login/delete_room', {
       data: { room: selectVal }
+    })
+    .catch(err => {
+      console.log(err);
     });
     
     const copyRooms = [...rooms];
     
     const roomIndex = copyRooms.findIndex(room => room === selectVal);
     copyRooms.splice(roomIndex, 1);
+
     setRooms(copyRooms);
+
+    socket.emit('update_room', (copyRooms));
   }
 
   function onChange(e) {
@@ -188,7 +205,6 @@ export default function Login() {
                 <select name="room" id="room" value={selectVal} onChange={handleSelect}>
                   {rooms.map((room, i) => <option key={i} value={room}>{room}</option>)}
                 </select>
-                <input type="submit" onClick={handleDeleteRoom} value="Delete room" />
               </div>
             </div>
             <div className="form-control">
@@ -212,6 +228,7 @@ export default function Login() {
                 Can only contain letters and must be between 1-12 characters.<br/>
                 Cannot make a duplicate room.
                 </p>
+                <input id="delete-room" type="submit" onClick={handleDeleteRoom} value="Delete selected room" />
             </div>
         </main>
       </div>

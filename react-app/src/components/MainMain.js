@@ -65,8 +65,11 @@ export default function MainMain({ socket, room, clientMessage }) {
     if (room) {
       axios.get('/chatroom/' + room)
         .then(data => data.data)
-        .then(mess => setMess(mess));
-    }
+        .then(mess => setMess(mess))
+        .catch(err => {
+          console.log(err);
+        });
+    };
   }, [room]);
 
   return (

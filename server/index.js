@@ -3,8 +3,8 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
-const { getDB, createObjectId } = require('./db');
-
+const { getDB } = require('./db');
+const validate = require('./utils/validate');
 const formatMessage = require('./utils/formatMessage');
 const { 
   userJoin,
@@ -13,7 +13,6 @@ const {
   getRoomUsers
 } = require('./utils/users');
 
-app.use(express.static('../app/public'));
 app.use(express.json());
 
 app.get('/chatroom/:room/', (req, res) => {
@@ -54,6 +53,8 @@ app.post('/login/new_room', (req, res) => {
   const db = getDB();
   const data = req.body;
 
+  if (validate(data) === false) return res.status(400).end();
+
   // Validate duplicate rooms.
   db.collection('rooms')
     .find({room: data.room})
@@ -81,8 +82,6 @@ app.delete('/login/delete_room', (req, res) => {
   const db = getDB();
   const data = req.body.room;
 
-  // if (validate(data) === false) return res.status(400).end();
-
   db.collection('rooms')
     .deleteMany({ room: data })
     .then(() => {
@@ -93,12 +92,6 @@ app.delete('/login/delete_room', (req, res) => {
       res.send(500).end();
     })
 });
-
-function validate(msg) {
-  if (!!msg.room && !!msg.user && !!msg.message) return true;
-
-  return false;
-}
 
 app.post('/message', (req, res) => {
   const db = getDB();
@@ -148,9 +141,9 @@ io.on('connection', (socket) => {
     };
   });
 
-  socket.on('add_room', (rooms) => {
+  socket.on('update_room', (rooms) => {
     let uniqueRooms = [...new Set(rooms)];
-    socket.broadcast.emit('new_room', uniqueRooms);
+    socket.broadcast.emit('update_room', uniqueRooms);
   })
   
   socket.on('disconnect', () => {
