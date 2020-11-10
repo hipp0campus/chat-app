@@ -11,7 +11,7 @@ Chatrooms and message data is stored in mongodb.
 ## Running client
 - Run `npm install`.
 - Run `npm start`.
-- Go to http://localhost:3000.
+- Go to `http://localhost:3000`.
 
 ## Technologies
 * react
