@@ -1,5 +1,5 @@
 # Chat App
-Real-time chat app, create new chatrooms and invite your friends.
+Real-time chat app, create new chatrooms and invite your friends.<br/>
 Chatrooms and message data is stored in mongodb.
 
 ## Running server
